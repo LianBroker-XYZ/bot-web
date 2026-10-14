@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#075e54">
+<title>LIAN CHAT</title>
+<style>
+:root {
+  --wa-green:#075e54;
+  --wa-light:#128c7e;
+  --wa-accent:#25d366;
+  --bg:#0b141a;
+  --panel:#202c33;
+  --panel2:#111b21;
+  --line:#2a3942;
+  --text:#e9edef;
+  --muted:#8696a0;
+  --mine:#005c4b;
+  --other:#202c33;
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif}
+body{overflow:hidden}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+button:disabled{opacity:.55;cursor:wait}
+.app{height:100dvh;width:100%;max-width:1100px;margin:auto;display:flex;flex-direction:column;background:#0b141a;overflow:hidden}
+header{height:64px;flex-shrink:0;background:var(--panel);display:flex;align-items:center;gap:11px;padding:8px 12px;border-bottom:1px solid var(--line);z-index:2}
+.logo{height:43px;width:43px;flex-shrink:0;display:grid;place-items:center;background:var(--wa-green);border-radius:50%;font-size:23px;font-weight:900;color:white}
+.brand{flex:1;min-width:0}
+.brand h1{font-size:17px;margin:0;font-weight:700;letter-spacing:.2px}
+.brand p{font-size:11px;color:#b0bec5;margin:4px 0 0}
+.icon{height:40px;min-width:40px;border:0;border-radius:50%;background:transparent;color:var(--text);font-size:20px}
+.icon:hover{background:#ffffff12}
+#connectionStatus{min-height:28px;flex-shrink:0;padding:6px 13px;background:#111b21;color:#aebac1;font-size:11px;overflow-wrap:anywhere}
+#connectionStatus.online{color:#56dca3}
+#connectionStatus.error{color:#ff8996}
+#messages{flex:1;min-height:0;overflow-y:auto;padding:16px 12px 20px;display:flex;flex-direction:column;gap:5px;scroll-behavior:smooth;background-color:#0b141a;background-image:radial-gradient(circle at 20% 20%,#18242b 0,transparent 40%),radial-gradient(circle at 80% 70%,#101c23 0,transparent 45%)}
+.empty{margin:auto;text-align:center;color:#aab6bd;line-height:1.8;white-space:pre-line;padding:22px;font-size:14px}
+.day-separator{align-self:center;background:#182229;color:#b8c5cc;font-size:11px;padding:6px 12px;border-radius:8px;margin:10px 0 14px}
+.msg{display:flex;align-items:flex-end;gap:6px;max-width:min(88%,680px);margin:2px 0}
+.msg.mine{align-self:flex-end;flex-direction:row-reverse}
+.msg.other{align-self:flex-start}
+.avatar{width:30px;height:30px;flex:0 0 30px;object-fit:cover;border-radius:50%;background:#26343d;border:1px solid #34434d}
+.bubble{position:relative;min-width:100px;max-width:100%;padding:7px 9px 5px;border-radius:9px;background:var(--other);border:1px solid #26343d;overflow-wrap:anywhere;box-shadow:0 1px 1px #0002}
+.msg.mine .bubble{background:var(--mine);border-color:#075448}
+.msg.other .bubble{border-top-left-radius:3px}
+.msg.mine .bubble{border-top-right-radius:3px}
+.sender{font-size:12px;color:#64d7e7;font-weight:700;margin:0 0 5px;display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.msg.mine .sender{color:#75e0d0}
+.ai-label{color:#83caff!important}
+.verified{display:inline-flex;vertical-align:middle;width:15px;height:15px;align-items:center;justify-content:center;flex-shrink:0}
+.verified svg{width:15px;height:15px;display:block}
+.rainbow-name{background:linear-gradient(90deg,#ff5151,#ffb52e,#fff34c,#42e86b,#40cfff,#9871ff,#ff66cc);background-size:200% auto;color:transparent!important;background-clip:text;-webkit-background-clip:text;animation:rainbow 3s linear infinite}
+@keyframes rainbow{to{background-position:200% center}}
+.msgtext{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.45;font-size:14px}
+.time{display:flex;justify-content:flex-end;align-items:center;gap:4px;margin-top:4px;font-size:10px;color:#a9c7c0;white-space:nowrap}
+.ticks{font-size:12px;color:#53c8e7}
+.media{display:block;width:auto;max-width:min(100%,330px);max-height:360px;object-fit:contain;border-radius:7px;margin:4px 0;background:#10191f}
+video.media{width:min(100%,330px)}
+audio.media-audio{display:block;width:min(260px,100%);margin:6px 0}
+.media-name{font-size:11px;color:#c3d0d5;margin-top:4px}
+.reply-preview{display:block;width:100%;text-align:left;border:0;border-left:3px solid #53c9bd;border-radius:4px;background:#0002;color:#c9d5da;padding:7px 8px;margin:0 0 6px;font-size:11px;cursor:pointer}
+.reply-preview b{display:block;color:#6bd9ce;margin-bottom:3px}
+.reply-preview span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.reply-btn{border:0;background:transparent;color:#b6c7c8;font-size:11px;padding:6px 2px 1px}
+.reply-btn:hover{color:white}
+.composer{flex-shrink:0;background:#202c33;padding:9px 9px max(9px,env(safe-area-inset-bottom));border-top:1px solid #26343c}
+.replybar{display:none;align-items:center;gap:9px;background:#111b21;border-left:3px solid var(--wa-accent);border-radius:8px;padding:8px 10px;margin-bottom:8px}
+.replybar.show{display:flex}
+.replycontent{flex:1;min-width:0}
+.replybar b{display:block;font-size:12px;color:#53d9cb;margin-bottom:3px}
+.replybar span{display:block;font-size:12px;color:#c0cbd0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row{display:flex;align-items:flex-end;gap:6px}
+.attach{width:43px;height:43px;flex-shrink:0;border:0;border-radius:50%;background:transparent;color:#d3dde1;font-size:23px}
+.attach:hover{background:#ffffff12}
+#messageInput{flex:1;min-width:0;max-height:125px;min-height:43px;resize:none;border:0;outline:0;border-radius:23px;padding:12px 15px;background:#2a3942;color:#fff;line-height:19px}
+#messageInput::placeholder{color:#a6b4ba}
+.send{height:43px;min-width:43px;border:0;border-radius:50%;background:var(--wa-accent);color:#08251b;font-size:18px;font-weight:900}
+.hint{font-size:10px;color:#93a3aa;padding:6px 5px 0}
+.overlay{position:fixed;inset:0;z-index:10;background:#000a;display:none;align-items:flex-end;justify-content:center}
+.overlay.show{display:flex}
+.sheet{width:100%;max-width:600px;max-height:90dvh;overflow:auto;padding:20px;background:#202c33;border:1px solid #374750;border-radius:20px 20px 0 0}
+.sheet h2{font-size:19px;margin:0 0 18px}
+.field{margin-bottom:15px}
+.field label{display:block;color:#b5c3c9;font-size:12px;margin-bottom:7px}
+.field input{width:100%;padding:12px;border-radius:9px;border:1px solid #3b4b54;background:#111b21;color:#fff}
+.field input[type=file]{font-size:12px}
+.actions{display:flex;gap:9px;margin-top:17px}
+.actions button{flex:1;padding:12px;border:0;border-radius:9px;background:#25d366;color:#07281d;font-weight:800}
+.actions .secondary{background:#2a3942;color:white;border:1px solid #3b4b54}
+.note{font-size:12px;line-height:1.6;color:#a8b7be}
+#toast{position:fixed;z-index:30;bottom:100px;left:50%;transform:translateX(-50%);padding:11px 15px;border-radius:10px;background:#293840;border:1px solid #40515a;color:#fff;font-size:12px;max-width:92%;width:max-content;display:none;box-shadow:0 5px 20px #0005}
+#toast.show{display:block}
+@media(min-width:700px){
+ body{padding:16px}
+ .app{height:calc(100dvh - 32px);border:1px solid #2b3a42;border-radius:12px}
+ #messages{padding:20px 5%}
+ .overlay{align-items:center}
+ .sheet{border-radius:18px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="logo">L</div>
+  <div class="brand">
+    <h1>LIAN CHAT</h1>
+    <p>Realtime messaging</p>
+  </div>
+  <button class="icon" id="gptButton" title="Aktif/nonaktifkan AI">AI</button>
+  <button class="icon" id="settingsButton" title="Pengaturan profil">⚙</button>
+</header>
+
+<div id="connectionStatus">Menghubungkan ke Firebase...</div>
+
+<main id="messages">
+  <div class="empty">💬
+Selamat datang di LIAN CHAT.
+Pesan akan muncul di sini.</div>
+</main>
+
+<div class="composer">
+  <div class="replybar" id="replyBar">
+    <div class="replycontent">
+      <b id="replyName">Membalas</b>
+      <span id="replyText"></span>
+    </div>
+    <button class="icon" id="cancelReply" title="Batalkan balasan">×</button>
+  </div>
+  <div class="row">
+    <button class="attach" id="attachButton" title="Kirim media">＋</button>
+    <input id="mediaInput" type="file" accept="image/*,video/*,audio/*" hidden>
+    <button class="attach" id="recordButton" title="Rekam voice note">🎙</button>
+    <textarea id="messageInput" rows="1" placeholder="Ketik pesan..." aria-label="Pesan"></textarea>
+    <button class="send" id="sendButton" title="Kirim pesan">➤</button>
+  </div>
+  <div class="hint">Ketik @gpt on untuk mengaktifkan AI • @gpt off untuk menonaktifkan</div>
+</div>
+</div>
+
+<div class="overlay" id="settingsOverlay">
+<section class="sheet">
+  <h2>⚙ Pengaturan Profil</h2>
+  <div class="field">
+    <label for="profileName">Nama tampilan</label>
+    <input id="profileName" maxlength="50" placeholder="Contoh: Lian[centang]">
+  </div>
+  <div class="field">
+    <label for="profileImageInput">Foto profil (maksimal 4 MB)</label>
+    <input id="profileImageInput" type="file" accept="image/*">
+  </div>
+  <div class="field">
+    <label for="profileVideoInput">Video profil (maksimal 500 KB, maksimal 10 detik)</label>
+    <input id="profileVideoInput" type="file" accept="video/*">
+  </div>
+  <p class="note">
+    Gunakan <b>Lian[centang]</b> untuk nama dengan centang biru atau
+    <b>Lian[rainbow]</b> untuk nama warna-warni. Foto dan video disimpan
+    sebagai Base64 di Firebase Realtime Database.
+  </p>
+  <div class="actions">
+    <button class="secondary" id="closeSettings">Tutup</button>
+    <button id="saveProfile">Simpan Profil</button>
+  </div>
+</section>
+</div>
+<div id="toast" role="status"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+<script>
+"use strict";
+
+/* =========================================================
+   LIAN CHAT
+   Realtime Database + Base64
+   ========================================================= */
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDX9XvBMONqrX-yyrqu8tCt35CrUK6k1Pg",
+  authDomain: "lian-broker-c4147.firebaseapp.com",
+  databaseURL: "https://lian-broker-c4147-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "lian-broker-c4147",
+  storageBucket: "lian-broker-c4147.firebasestorage.app",
+  messagingSenderId: "60157955667",
+  appId: "1:60157955667:web:ab044235ee00e2f58980a6",
+  measurementId: "G-CP632TY3P4"
+};
+
+const ROOM = "umum";
+const AI_ENDPOINT = "https://apiii-xrina.my.id/ai/gpt?text=";
+
+const MAX_IMAGE_BYTES = 400 * 1024;
+const MAX_MEDIA_BYTES = 650 * 1024;
+const MAX_PROFILE_IMAGE_BYTES = 4 * 1024 * 1024;
+const MAX_PROFILE_VIDEO_BYTES = 500 * 1024;
+
+firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+const db = firebase.database();
+const messagesRef = db.ref("rooms/" + ROOM + "/messages");
+const profilesRef = db.ref("profiles");
+const $ = id => document.getElementById(id);
+
+let currentUser = null;
+let myProfile = {name:"",photo:"",video:""};
+let profiles = {};
+let messageCache = {};
+let replyTo = null;
+let gptEnabled = false;
+let sending = false;
+let recording = null;
+let recordingChunks = [];
+let recordingStream = null;
+let pendingProfilePhoto;
+let pendingProfileVideo;
+let authReady = false;
+let profilesReady = false;
+let messagesReady = false;
+let aiBusy = false;
+
+function toast(message) {
+  const el = $("toast");
+  el.textContent = String(message);
+  el.classList.add("show");
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(() => el.classList.remove("show"), 3500);
+}
+
+function setStatus(message, type = "") {
+  $("connectionStatus").textContent = message;
+  $("connectionStatus").className = type;
+}
+
+function makeNode(tag, className, text) {
+  const el = document.createElement(tag);
+  if (className) el.className = className;
+  if (text !== undefined) el.textContent = text;
+  return el;
+}
+
+function shortText(value, max = 120) {
+  const text = String(value ?? "").replace(/\s+/g, " ").trim();
+  return text.length > max ? text.slice(0, max) + "…" : text;
+}
+
+function escapeSVGText(value) {
+  return String(value || "?").charAt(0).toUpperCase()
+    .replace(/[<>&"']/g, "");
+}
+
+function defaultAvatar(name) {
+  const letter = escapeSVGText(name);
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><rect width="80" height="80" rx="40" fill="#173c43"/><text x="50%" y="55%" text-anchor="middle" dominant-baseline="middle" fill="#25d366" font-size="34" font-family="Arial">' + letter + '</text></svg>';
+  return "data:image/svg+xml;base64," + btoa(svg);
+}
+
+function getProfile(uid) {
+  return profiles[uid] || {};
+}
+
+function rawDisplayName(uid, fallback) {
+  const profile = getProfile(uid);
+  return String(profile.name || fallback || (uid === "lian-ai" ? "LIAN AI" : "Pengguna")).trim();
+}
+
+function parseName(name) {
+  let value = String(name || "Pengguna").trim();
+  let verified = false;
+  let rainbow = false;
+
+  if (/\[centang\]/i.test(value)) {
+    verified = true;
+    value = value.replace(/\[centang\]/ig, "");
+  }
+
+  if (/\[rainbow\]/i.test(value)) {
+    rainbow = true;
+    value = value.replace(/\[rainbow\]/ig, "");
+  }
+
+  value = value.trim() || "Pengguna";
+  return {text:value, verified, rainbow};
+}
+
+function verifiedBadge() {
+  const span = makeNode("span", "verified");
+  span.title = "Terverifikasi";
+  span.innerHTML = '<svg viewBox="0 0 24 24" aria-label="Centang biru"><path fill="#53bdeb" d="M12 1.8 15 3l3.3-.1 1.3 3 2.5 2.2-.8 3.2.8 3.2-2.5 2.2-1.3 3-3.3-.1-3 1.2-3-1.2-3.3.1-1.3-3L1.9 14.3l.8-3.2-.8-3.2 2.5-2.2 1.3-3L9 3z"/><path d="m7.3 12.1 3 3 6.5-6.4" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  return span;
+}
+
+function appendDisplayName(container, rawName, ai = false) {
+  const parsed = parseName(rawName);
+  const label = makeNode("span", ai ? "ai-label" : "");
+  label.textContent = parsed.text;
+
+  if (parsed.rainbow) label.classList.add("rainbow-name");
+  container.appendChild(label);
+
+  if (parsed.verified || ai) container.appendChild(verifiedBadge());
+}
+
+function avatarFor(uid, name) {
+  return getProfile(uid).photo || defaultAvatar(name);
+}
+
+function timeText(value) {
+  try {
+    return new Date(value || Date.now()).toLocaleTimeString("id-ID", {
+      hour:"2-digit", minute:"2-digit"
+    });
+  } catch {
+    return "";
+  }
+}
+
+function dateText(value) {
+  try {
+    return new Date(value || Date.now()).toLocaleDateString("id-ID", {
+      day:"numeric", month:"long", year:"numeric"
+    });
+  } catch {
+    return "";
+  }
+}
+
+function fileToDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error("Gagal membaca file."));
+    reader.readAsDataURL(file);
+  });
+}
+
+function clearReply() {
+  replyTo = null;
+  $("replyBar").classList.remove("show");
+}
+
+function setReply(message) {
+  replyTo = {
+    id: message.id || "",
+    type: message.type || "text",
+    text: message.text || "",
+    mediaName: message.mediaName || "",
+    senderName: message.senderName || "Pengguna",
+    senderUid: message.senderUid || ""
+  };
+
+  $("replyBar").classList.add("show");
+  $("replyName").textContent = "Membalas " + parseName(replyTo.senderName).text;
+  $("replyText").textContent = replyTo.text
+    ? shortText(replyTo.text, 150)
+    : "[" + (replyTo.mediaName || replyTo.type || "Media") + "]";
+  $("messageInput").focus();
+}
+
+$("cancelReply").addEventListener("click", clearReply);
+
+function makeReplyPreview(reply) {
+  const preview = makeNode("button", "reply-preview");
+  preview.type = "button";
+
+  const b = makeNode("b", "", parseName(reply.senderName || "Balasan").text);
+  const span = makeNode("span", "", reply.text || "[" + (reply.type || "Media") + "]");
+  preview.append(b, span);
+
+  preview.addEventListener("click", () => {
+    if (!reply.id) return;
+    const target = document.querySelector('[data-message-id="' + CSS.escape(reply.id) + '"]');
+    if (target) target.scrollIntoView({behavior:"smooth", block:"center"});
+  });
+
+  return preview;
+}
+
+function renderMedia(message, bubble) {
+  if (!message.mediaData) return;
+
+  if (message.type === "image") {
+    const img = makeNode("img", "media");
+    img.src = message.mediaData;
+    img.alt = message.mediaName || "Gambar";
+    img.loading = "lazy";
+    img.addEventListener("click", () => {
+      const win = window.open();
+      if (win) {
+        win.document.write('<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gambar</title><style>body{margin:0;background:#111;display:grid;place-items:center;min-height:100vh}img{max-width:100%;max-height:100vh;object-fit:contain}</style><img src="' + message.mediaData + '" alt="Gambar">');
+        win.document.close();
+      }
+    });
+    bubble.appendChild(img);
+  } else if (message.type === "video") {
+    const video = makeNode("video", "media");
+    video.src = message.mediaData;
+    video.controls = true;
+    video.preload = "metadata";
+    video.playsInline = true;
+    bubble.appendChild(video);
+  } else if (message.type === "audio") {
+    const audio = makeNode("audio", "media-audio");
+    audio.src = message.mediaData;
+    audio.controls = true;
+    audio.preload = "metadata";
+    bubble.appendChild(audio);
+  }
+
+  if (message.mediaName) {
+    bubble.appendChild(makeNode("div", "media-name", message.mediaName));
+  }
+}
+
+function renderMessage(id, message) {
+  const mine = !!currentUser && message.senderUid === currentUser.uid;
+  const isAI = message.type === "ai" || message.senderUid === "lian-ai";
+  const wrapper = makeNode("article", "msg " + (mine ? "mine" : "other"));
+  wrapper.dataset.messageId = id;
+
+  const name = rawDisplayName(message.senderUid, message.senderName);
+  const avatar = makeNode("img", "avatar");
+  avatar.src = avatarFor(message.senderUid, name);
+  avatar.alt = parseName(name).text;
+  avatar.loading = "lazy";
+  avatar.onerror = () => {
+    avatar.onerror = null;
+    avatar.src = defaultAvatar(name);
+  };
+  wrapper.appendChild(avatar);
+
+  const bubble = makeNode("div", "bubble");
+  const sender = makeNode("div", "sender");
+  appendDisplayName(sender, isAI ? "LIAN AI" : name, isAI);
+  bubble.appendChild(sender);
+
+  if (message.replyTo) {
+    bubble.appendChild(makeReplyPreview(message.replyTo));
+  }
+
+  if (message.type === "text" || message.type === "ai") {
+    bubble.appendChild(makeNode("div", "msgtext", message.text || ""));
+  } else {
+    renderMedia(message, bubble);
+    if (message.text) bubble.appendChild(makeNode("div", "msgtext", message.text));
+  }
+
+  const time = makeNode("div", "time");
+  time.appendChild(makeNode("span", "", timeText(message.timestamp)));
+  if (mine) time.appendChild(makeNode("span", "ticks", "✓✓"));
+  bubble.appendChild(time);
+
+  const replyBtn = makeNode("button", "reply-btn", "↩ Balas");
+  replyBtn.type = "button";
+  replyBtn.addEventListener("click", () => {
+    setReply({
+      id,
+      type: message.type,
+      text: message.text || "",
+      mediaName: message.mediaName || "",
+      senderName: isAI ? "LIAN AI" : name,
+      senderUid: message.senderUid
+    });
+  });
+  bubble.appendChild(replyBtn);
+
+  wrapper.appendChild(bubble);
+  return wrapper;
+}
+
+function renderAllMessages() {
+  const container = $("messages");
+  const atBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 120;
+  const oldTop = container.scrollTop;
+  container.replaceChildren();
+
+  const ids = Object.keys(messageCache).sort((a, b) => {
+    const ta = Number(messageCache[a]?.timestamp) || 0;
+    const tb = Number(messageCache[b]?.timestamp) || 0;
+    return ta - tb;
+  }).slice(-100);
+
+  if (!ids.length) {
+    container.appendChild(makeNode("div", "empty", "💬\nBelum ada pesan.\nMulai percakapan!"));
+    return;
+  }
+
+  let lastDate = "";
+  for (const id of ids) {
+    const message = messageCache[id];
+    const date = dateText(message.timestamp);
+
+    if (date !== lastDate) {
+      container.appendChild(makeNode("div", "day-separator", date));
+      lastDate = date;
+    }
+
+    container.appendChild(renderMessage(id, message));
+  }
+
+  container.scrollTop = atBottom ? container.scrollHeight : oldTop;
+}
+
+/* =========================================================
+   SEND MESSAGE
+   ========================================================= */
+
+async function sendMessage(payload) {
+  if (!currentUser) throw new Error("Belum terhubung ke Firebase.");
+  if (!authReady) throw new Error("Sesi login belum siap.");
+  if (sending) throw new Error("Pesan sebelumnya masih dikirim.");
+
+  sending = true;
+  $("sendButton").disabled = true;
+
+  try {
+    const message = {
+      ...payload,
+      senderUid: currentUser.uid,
+      senderName: String(myProfile.name || "Pengguna").trim().slice(0, 50) || "Pengguna",
+      timestamp: firebase.database.ServerValue.TIMESTAMP
+    };
+
+    // Simpan salinan reply sebelum state UI dibersihkan.
+    if (replyTo) {
+      message.replyTo = {
+        id: replyTo.id || "",
+        senderName: replyTo.senderName || "Pengguna",
+        text: replyTo.text || "",
+        type: replyTo.type || "text"
+      };
+    }
+
+    const result = await messagesRef.push(message);
+    clearReply();
+    return result.key;
+  } finally {
+    sending = false;
+    $("sendButton").disabled = false;
+  }
+}
+
+function updateGPTButton() {
+  $("gptButton").textContent = gptEnabled ? "AI ON" : "AI OFF";
+  $("gptButton").style.color = gptEnabled ? "#25d366" : "#e9edef";
+  $("gptButton").title = gptEnabled ? "AI aktif — tekan untuk mematikan" : "AI nonaktif — tekan untuk mengaktifkan";
+}
+
+$("gptButton").addEventListener("click", () => {
+  gptEnabled = !gptEnabled;
+  updateGPTButton();
+  toast(gptEnabled ? "LIAN AI diaktifkan." : "LIAN AI dinonaktifkan.");
+});
+
+function getAIAnswer(json) {
+  const candidates = [
+    json?.data?.response,
+    json?.response,
+    json?.data?.result,
+    json?.result,
+    json?.data?.answer,
+    json?.answer,
+    json?.data?.text,
+    json?.text
+  ];
+
+  for (const candidate of candidates) {
+    if (typeof candidate === "string" && candidate.trim()) return candidate.trim();
+  }
+
+  return "";
+}
+
+async function askGPT(question, originalText, repliedMessage) {
+  if (aiBusy) {
+    toast("LIAN AI masih memproses pesan sebelumnya.");
+    return;
+  }
+
+  aiBusy = true;
+  setStatus("LIAN AI sedang berpikir...", "online");
+
+  try {
+    const history = Object.values(messageCache)
+      .sort((a, b) => (Number(a.timestamp) || 0) - (Number(b.timestamp) || 0))
+      .slice(-20)
+      .filter(m => m && m.text && (m.type === "text" || m.type === "ai"))
+      .map(m => {
+        const name = m.type === "ai" || m.senderUid === "lian-ai"
+          ? "LIAN AI"
+          : rawDisplayName(m.senderUid, m.senderName);
+        return parseName(name).text + ": " + m.text;
+      })
+      .join("\n");
+
+    const replyContext = repliedMessage
+      ? "\nPesan yang sedang dibalas:\n" +
+        (repliedMessage.senderName || "Pengguna") + ": " +
+        (repliedMessage.text || "[pesan media]")
+      : "";
+
+    const fullPrompt = [
+      "Kamu adalah LIAN AI, asisten resmi di aplikasi LIAN CHAT.",
+      "Jawab pesan terbaru pengguna secara langsung dan relevan.",
+      "Gunakan bahasa yang sesuai dengan pengguna.",
+      "Jika pengguna membalas pesan LIAN AI, lanjutkan konteks pembicaraan sebelumnya.",
+      "Riwayat percakapan:",
+      history || "(belum ada)",
+      replyContext,
+      "Pesan terbaru pengguna:",
+      question
+    ].filter(Boolean).join("\n\n");
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 60000);
+
+    let response;
+    try {
+      response = await fetch(AI_ENDPOINT + encodeURIComponent(fullPrompt), {
+        method: "GET",
+        signal: controller.signal,
+        headers: { "Accept": "application/json" }
+      });
+    } finally {
+      clearTimeout(timeout);
+    }
+
+    if (!response.ok) throw new Error("API GPT HTTP " + response.status);
+
+    const json = await response.json();
+    if (json?.status === false || json?.success === false) {
+      throw new Error(json.message || "API GPT menolak permintaan.");
+    }
+
+    const answer = getAIAnswer(json);
+    if (!answer) {
+      console.error("Respons API GPT tidak dikenali:", json);
+      throw new Error("Respons API tidak berisi jawaban yang dikenali.");
+    }
+
+    await messagesRef.push({
+      type: "ai",
+      text: answer,
+      senderUid: "lian-ai",
+      senderName: "LIAN AI",
+      timestamp: firebase.database.ServerValue.TIMESTAMP,
+      replyTo: {
+        senderName: myProfile.name || "Pengguna",
+        text: originalText || question,
+        type: "text"
+      }
+    });
+  } catch (error) {
+    console.error("LIAN AI error:", error);
+    toast(error.name === "AbortError"
+      ? "GPT timeout. Coba kirim ulang."
+      : "GPT gagal: " + (error.message || "Kesalahan tidak diketahui."));
+  } finally {
+    aiBusy = false;
+    updateConnectionStatus();
+  }
+}
+
+function updateConnectionStatus() {
+  if (!currentUser) return;
+  if (!navigator.onLine) {
+    setStatus("Tidak ada koneksi internet.", "error");
+  } else {
+    setStatus("Terhubung ke room #" + ROOM, "online");
+  }
+}
+
+async function sendText() {
+  const input = $("messageInput");
+  const text = input.value.trim();
+  if (!text) return;
+  if (sending) {
+    toast("Tunggu pesan sebelumnya terkirim.");
+    return;
+  }
+
+  if (/^@gpt\s+on$/i.test(text)) {
+    gptEnabled = true;
+    updateGPTButton();
+    input.value = "";
+    input.style.height = "auto";
+    toast("LIAN AI diaktifkan.");
+    return;
+  }
+
+  if (/^@gpt\s+off$/i.test(text)) {
+    gptEnabled = false;
+    updateGPTButton();
+    input.value = "";
+    input.style.height = "auto";
+    toast("LIAN AI dinonaktifkan.");
+    return;
+  }
+
+  // Ambil reply sebelum sendMessage membersihkan UI reply.
+  const repliedMessage = replyTo ? {...replyTo} : null;
+  const replyIsAI = !!repliedMessage &&
+    (repliedMessage.type === "ai" || repliedMessage.senderUid === "lian-ai");
+
+  // Reply ke LIAN AI selalu memicu jawaban, meskipun tombol AI OFF.
+  const mentionAI = /^@gpt(?:\s|$)/i.test(text);
+  const shouldAskAI = replyIsAI || (gptEnabled && mentionAI);
+  const question = mentionAI ? text.replace(/^@gpt\s*/i, "").trim() : text;
+
+  input.value = "";
+  input.style.height = "auto";
+
+  try {
+    await sendMessage({type:"text", text});
+  } catch (error) {
+    input.value = text;
+    toast("Gagal mengirim pesan: " + error.message);
+    return;
+  }
+
+  if (shouldAskAI && question) {
+    await askGPT(question, text, repliedMessage);
+  }
+}
+
+$("sendButton").addEventListener("click", sendText);
+
+$("messageInput").addEventListener("keydown", event => {
+  if (event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault();
+    sendText();
+  }
+});
+
+$("messageInput").addEventListener("input", event => {
+  event.target.style.height = "auto";
+  event.target.style.height = Math.min(event.target.scrollHeight, 125) + "px";
+});
+
+/* =========================================================
+   IMAGE / VIDEO / AUDIO IN CHAT
+   ========================================================= */
+
+function getMediaType(file) {
+  if (file.type.startsWith("image/")) return "image";
+  if (file.type.startsWith("video/")) return "video";
+  if (file.type.startsWith("audio/")) return "audio";
+  return null;
+}
+
+$("attachButton").addEventListener("click", () => $("mediaInput").click());
+
+$("mediaInput").addEventListener("change", async event => {
+  const file = event.target.files?.[0];
+  event.target.value = "";
+  if (!file) return;
+
+  const type = getMediaType(file);
+  if (!type) {
+    toast("Format file tidak didukung.");
+    return;
+  }
+
+  const limit = type === "image" ? MAX_IMAGE_BYTES : MAX_MEDIA_BYTES;
+  if (file.size > limit) {
+    toast("File terlalu besar. Batas " + Math.round(limit / 1024) + " KB.");
+    return;
+  }
+
+  try {
+    toast("Membaca media...");
+    const data = await fileToDataURL(file);
+    await sendMessage({
+      type,
+      mediaData: data,
+      mediaName: file.name.slice(0, 120)
+    });
+    toast("Media terkirim.");
+  } catch (error) {
+    toast("Gagal mengirim media: " + error.message);
+  }
+});
+
+/* =========================================================
+   VOICE NOTE
+   ========================================================= */
+
+$("recordButton").addEventListener("click", async () => {
+  const button = $("recordButton");
+
+  if (recording && recording.state === "recording") {
+    recording.stop();
+    button.textContent = "🎙";
+    button.style.color = "";
+    return;
+  }
+
+  if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
+    toast("Browser tidak mendukung perekaman VN.");
+    return;
+  }
+
+  try {
+    recordingStream = await navigator.mediaDevices.getUserMedia({audio:true});
+    recordingChunks = [];
+
+    const options = {};
+    if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
+      options.mimeType = "audio/webm;codecs=opus";
+    }
+
+    recording = new MediaRecorder(recordingStream, options);
+
+    recording.ondataavailable = event => {
+      if (event.data?.size) recordingChunks.push(event.data);
+    };
+
+    recording.onerror = () => toast("Terjadi kesalahan saat merekam.");
+
+    recording.onstop = async () => {
+      try {
+        const blob = new Blob(recordingChunks, {
+          type: recording.mimeType || "audio/webm"
+        });
+
+        if (!blob.size) {
+          toast("Rekaman kosong.");
+          return;
+        }
+
+        if (blob.size > MAX_MEDIA_BYTES) {
+          toast("VN terlalu besar. Batas 650 KB.");
+          return;
+        }
+
+        const data = await fileToDataURL(blob);
+        await sendMessage({
+          type: "audio",
+          mediaData: data,
+          mediaName: "VN-" + Date.now() + ".webm"
+        });
+        toast("VN terkirim.");
+      } catch (error) {
+        toast("Gagal mengirim VN: " + error.message);
+      } finally {
+        recordingStream?.getTracks().forEach(track => track.stop());
+        recordingStream = null;
+        button.textContent = "🎙";
+        button.style.color = "";
+      }
+    };
+
+    recording.start();
+    button.textContent = "■";
+    button.style.color = "#ff647c";
+    toast("Merekam VN. Tekan tombol lagi untuk berhenti.");
+  } catch (error) {
+    toast("Izin mikrofon gagal: " + error.message);
+  }
+});
+
+/* =========================================================
+   PROFILE SETTINGS
+   ========================================================= */
+
+$("settingsButton").addEventListener("click", () => {
+  $("profileName").value = myProfile.name || "";
+  $("settingsOverlay").classList.add("show");
+});
+
+$("closeSettings").addEventListener("click", () => {
+  $("settingsOverlay").classList.remove("show");
+});
+
+$("settingsOverlay").addEventListener("click", event => {
+  if (event.target === $("settingsOverlay")) {
+    $("settingsOverlay").classList.remove("show");
+  }
+});
+
+$("profileImageInput").addEventListener("change", async event => {
+  const file = event.target.files?.[0];
+  event.target.value = "";
+  if (!file) return;
+
+  if (!file.type.startsWith("image/")) {
+    toast("Pilih file gambar.");
+    return;
+  }
+
+  if (file.size > MAX_PROFILE_IMAGE_BYTES) {
+    toast("Foto profil maksimal 4 MB.");
+    return;
+  }
+
+  try {
+    pendingProfilePhoto = await fileToDataURL(file);
+    toast("Foto profil siap. Tekan Simpan Profil.");
+  } catch (error) {
+    toast("Gagal membaca foto: " + error.message);
+  }
+});
+
+$("profileVideoInput").addEventListener("change", async event => {
+  const file = event.target.files?.[0];
+  event.target.value = "";
+  if (!file) return;
+
+  if (!file.type.startsWith("video/")) {
+    toast("Pilih file video.");
+    return;
+  }
+
+  if (file.size > MAX_PROFILE_VIDEO_BYTES) {
+    toast("Video profil maksimal 500 KB.");
+    return;
+  }
+
+  const url = URL.createObjectURL(file);
+  const video = document.createElement("video");
+  video.preload = "metadata";
+  video.src = url;
+
+  try {
+    const duration = await new Promise((resolve, reject) => {
+      video.onloadedmetadata = () => resolve(video.duration);
+      video.onerror = () => reject(new Error("Video tidak dapat dibaca."));
+    });
+
+    URL.revokeObjectURL(url);
+
+    if (!Number.isFinite(duration) || duration > 10) {
+      toast("Pilih video dengan durasi maksimal 10 detik.");
+      return;
+    }
+
+    pendingProfileVideo = await fileToDataURL(file);
+    toast("Video siap. Tekan Simpan Profil.");
+  } catch (error) {
+    URL.revokeObjectURL(url);
+    toast("Video gagal dibaca: " + error.message);
+  }
+});
+
+$("saveProfile").addEventListener("click", async () => {
+  if (!currentUser || !authReady) {
+    toast("Sesi Firebase belum siap. Coba lagi.");
+    return;
+  }
+
+  const button = $("saveProfile");
+  button.disabled = true;
+
+  try {
+    const name = $("profileName").value.trim().slice(0, 50) || "Pengguna";
+    const update = {
+      name,
+      updatedAt: firebase.database.ServerValue.TIMESTAMP
+    };
+
+    if (pendingProfilePhoto !== undefined) update.photo = pendingProfilePhoto;
+    if (pendingProfileVideo !== undefined) update.video = pendingProfileVideo;
+
+    await profilesRef.child(currentUser.uid).update(update);
+
+    myProfile = {
+      ...myProfile,
+      name,
+      ...(pendingProfilePhoto !== undefined ? {photo:pendingProfilePhoto} : {}),
+      ...(pendingProfileVideo !== undefined ? {video:pendingProfileVideo} : {})
+    };
+
+    profiles[currentUser.uid] = {
+      ...getProfile(currentUser.uid),
+      ...myProfile
+    };
+
+    pendingProfilePhoto = undefined;
+    pendingProfileVideo = undefined;
+
+    $("settingsOverlay").classList.remove("show");
+    renderAllMessages();
+    toast("Profil berhasil disimpan.");
+  } catch (error) {
+    console.error("Save profile error:", error);
+    toast("Gagal menyimpan profil: " + error.message);
+  } finally {
+    button.disabled = false;
+  }
+});
+
+/* =========================================================
+   FIREBASE REALTIME LISTENERS
+   ========================================================= */
+
+profilesRef.on("value", snapshot => {
+  profiles = snapshot.val() || {};
+  profilesReady = true;
+
+  if (currentUser && profiles[currentUser.uid]) {
+    myProfile = {
+      ...myProfile,
+      ...profiles[currentUser.uid]
+    };
+  }
+
+  renderAllMessages();
+}, error => {
+  console.error("Profiles listener:", error);
+  setStatus("Gagal memuat profil: " + error.message, "error");
+});
+
+messagesRef.limitToLast(100).on("value", snapshot => {
+  messageCache = snapshot.val() || {};
+  messagesReady = true;
+  renderAllMessages();
+}, error => {
+  console.error("Messages listener:", error);
+  setStatus("Gagal memuat pesan: " + error.message, "error");
+});
+
+db.ref(".info/connected").on("value", snapshot => {
+  if (snapshot.val() === true) {
+    updateConnectionStatus();
+  } else {
+    setStatus("Menghubungkan ulang ke Firebase...");
+  }
+});
+
+auth.onAuthStateChanged(async user => {
+  if (!user) {
+    currentUser = null;
+    authReady = false;
+    setStatus("Menyiapkan sesi login...");
+    return;
+  }
+
+  currentUser = user;
+
+  try {
+    const snapshot = await profilesRef.child(user.uid).once("value");
+    const saved = snapshot.val();
+
+    if (saved) {
+      myProfile = {
+        name: saved.name || "Pengguna-" + user.uid.slice(0, 5),
+        photo: saved.photo || "",
+        video: saved.video || "",
+        ...saved
+      };
+    } else {
+      myProfile = {
+        name: "Pengguna-" + user.uid.slice(0, 5),
+        photo: "",
+        video: ""
+      };
+
+      await profilesRef.child(user.uid).set({
+        name: myProfile.name,
+        createdAt: firebase.database.ServerValue.TIMESTAMP
+      });
+    }
+
+    profiles[user.uid] = {
+      ...getProfile(user.uid),
+      ...myProfile
+    };
+
+    authReady = true;
+    $("profileName").value = myProfile.name || "";
+    updateConnectionStatus();
+    renderAllMessages();
+  } catch (error) {
+    console.error("Profile initialization:", error);
+    authReady = false;
+    setStatus("Gagal memuat profil: " + error.message, "error");
+  }
+});
+
+auth.signInAnonymously().catch(error => {
+  console.error("Firebase Auth:", error);
+  setStatus("Login gagal: " + error.message, "error");
+});
+
+window.addEventListener("online", updateConnectionStatus);
+window.addEventListener("offline", () => {
+  setStatus("Tidak ada koneksi internet.", "error");
+});
+
+updateGPTButton();
+</script>
+</body>
+</html>
